@@ -1,0 +1,8 @@
+.vscode
+.hide
+config.json
+build
+
+install-build-pi.sh
+install-pi.sh
+install-service-pi.sh

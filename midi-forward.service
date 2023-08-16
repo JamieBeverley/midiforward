@@ -1,0 +1,12 @@
+[Unit]
+Description=midiforward service 
+
+[Service]
+Type=simple 
+Restart=always 
+RestartSec=2
+User=pi
+ExecStart=/usr/bin/env /home/pi/repos/midiforward/midiforward 
+
+[Install]
+WantedBy=default.target

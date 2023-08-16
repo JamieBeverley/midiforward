@@ -1,0 +1,8 @@
+{
+  "out": "Midi Through:Midi Through Port-0 14:0",
+  "ignore": [
+    "Midi Through:Midi Through Port-0 14:0",
+    "RtMidi Output Client:port-0 128:0",
+    "RtMidi Output Client:port-0 129:0"
+  ]
+}
