@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"midiforward/internal/forwarder"
+	"midiforward/internal/forwardport"
+	"midiforward/internal/server"
 	"midiforward/internal/utils"
 	"os"
 	"strings"
+	"sync"
 
 	"gitlab.com/gomidi/midi/v2"
 	_ "gitlab.com/gomidi/midi/v2/drivers/rtmididrv" // autoregisters driver
@@ -32,6 +35,16 @@ func main() {
 			Name:    "list",
 			Aliases: []string{"ls", "log"},
 			Usage:   "log midi ports",
+		}),
+		altsrc.NewInt64Flag(&cli.Int64Flag{
+			Name:  "serverPort",
+			Usage: "port for udp server",
+			Value: 8000,
+		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:  "serverAddress",
+			Usage: "port for udp server",
+			Value: "0.0.0.0",
 		}),
 		&cli.StringFlag{
 			Name:  "config",
@@ -62,10 +75,36 @@ func main() {
 			fmt.Println("\nSETTINGS:")
 			fmt.Printf("Output port: %s\n", outPortName)
 			fmt.Printf("Ignoring ports: %s\n\n", strings.Join(ignore, ", "))
-			err := forwarder.StartForwarding(outPortName, ignorePorts)
+			forwardPort, err := forwardport.New(outPortName)
 			if err != nil {
 				fmt.Printf("ERROR: %s\n", err)
+				return err
 			}
+
+			udpServer := server.New(
+				c.String("serverAddress"),
+				c.Int("serverPort"),
+				&forwardPort,
+			)
+
+			wg := sync.WaitGroup{}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				err := forwarder.StartForwarding(&forwardPort, ignorePorts)
+				if err != nil {
+					fmt.Printf("ERROR: %s\n", err)
+				}
+			}()
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				err := udpServer.Listen()
+				if err != nil {
+					fmt.Printf("ERROR: %s\n", err)
+				}
+			}()
+			wg.Wait()
 			return nil
 		},
 		Before: altsrc.InitInputSourceWithContext(flags, altsrc.NewJSONSourceFromFlagFunc("config")),

@@ -23,6 +23,7 @@ func containsPort(port drivers.In, ports midi.InPorts) bool {
 }
 
 func connectInPort(in drivers.In, fp *forwardport.ForwardPort) {
+	// TODO: should really call stop() fn on returned listener
 	_, err := midi.ListenTo(
 		in,
 		fp.ForwardMessage,
@@ -66,16 +67,11 @@ func connectPorts(
 	}
 }
 
-func StartForwarding(outputPortName string, ignorePorts map[string]struct{}) error {
-	forwardPort, err := forwardport.New(outputPortName)
-	if err != nil {
-		fmt.Println("Can't connect output port: ", outputPortName)
-		return err
-	}
+func StartForwarding(forwardPort *forwardport.ForwardPort, ignorePorts map[string]struct{}) error {
 	utils.LogPorts()
 	fmt.Println("Listening...")
 	for {
-		connectPorts(&forwardPort, ignorePorts)
+		connectPorts(forwardPort, ignorePorts)
 		time.Sleep(5 * time.Second)
 	}
 }

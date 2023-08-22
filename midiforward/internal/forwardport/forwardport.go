@@ -39,6 +39,8 @@ func (o *ForwardPort) connectOutput() error {
 	return nil
 }
 
+// TODO: what does int32 param contain? 'timestampms'?
+// https://github.com/gomidi/midi/blob/eb01aef2d7aa5ecb65343052708db05997af3315/examples/logger/main.go#L20
 func (o ForwardPort) ForwardMessage(msg midi.Message, timestampms int32) {
 	if o.port != nil {
 		fmt.Printf("Forwarding message: %s\n", msg)
